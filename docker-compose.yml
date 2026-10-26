@@ -1,0 +1,132 @@
+services:
+  # 1. Reverse Proxy SSL Nginx
+  reverse-proxy:
+    image: nginx:alpine
+    container_name: ecom_nginx
+    restart: always
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - webapp
+    networks:
+      - ecom_network
+
+  # 2. Ứng dụng Web App Node.js
+  webapp:
+    build:
+      context: ./webapp
+    container_name: ecom_webapp
+    restart: always
+    expose:
+      - "3000"
+    volumes:
+      - ./webapp/public:/app/public
+    environment:
+      - DB_HOST=ecom_mysql
+      - DB_USER=root
+      - DB_PASSWORD=RootAdmin@2026
+      - DB_NAME=ecom_db
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - ecom_network
+
+  # 3. Cơ sở dữ liệu MySQL 8.0
+  mysql:
+    image: mysql:8.0
+    container_name: ecom_mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: RootAdmin@2026
+      MYSQL_DATABASE: ecom_db
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./mysql/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pRootAdmin@2026"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - ecom_network
+
+  # 4. Trình quản trị CSDL trực quan Adminer
+  adminer:
+    image: adminer:latest
+    container_name: ecom_adminer
+    restart: always
+    ports:
+      - "8080:8080"
+    networks:
+      - ecom_network
+
+  # 5. Giám sát phần cứng Node Exporter
+  node-exporter:
+    image: prom/node-exporter:latest
+    container_name: ecom_node_exporter
+    restart: always
+    ports:
+      - "9100:9100"
+    networks:
+      - ecom_network
+
+  # 6. Prometheus thu thập Metrics
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: ecom_prometheus
+    restart: always
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+    networks:
+      - ecom_network
+
+  # 7. Grafana hiển thị biểu đồ Dashboard (cổng 3001)
+  grafana:
+    image: grafana/grafana:latest
+    container_name: ecom_grafana
+    restart: always
+    ports:
+      - "3001:3000"
+    environment:
+      - GF_SECURITY_ADMIN_PASSWORD=Admin@2026
+    networks:
+      - ecom_network
+
+  # 8. Loki quản lý Log
+  loki:
+    image: grafana/loki:latest
+    container_name: ecom_loki
+    restart: always
+    ports:
+      - "3100:3100"
+    volumes:
+      - ./monitoring/loki-config.yml:/etc/loki/local-config.yaml:ro
+    command: -config.file=/etc/loki/local-config.yaml
+    networks:
+      - ecom_network
+
+  # 9. Promtail thu thập log gửi tới Loki
+  promtail:
+    image: grafana/promtail:latest
+    container_name: ecom_promtail
+    restart: always
+    volumes:
+      - /var/log:/var/log:ro
+      - ./monitoring/promtail/promtail-config.yml:/etc/promtail/config.yml:ro
+    command: -config.file=/etc/promtail/config.yml
+    networks:
+      - ecom_network
+
+volumes:
+  mysql_data:
+
+networks:
+  ecom_network:
+    driver: bridge

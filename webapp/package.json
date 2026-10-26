@@ -1,0 +1,11 @@
+{
+  "name": "ecom-webapp",
+  "version": "1.0.0",
+  "main": "server.js",
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "express": "^4.19.2",
+    "mysql2": "^3.9.7",
+    "prom-client": "^15.1.2"
+  }
+}

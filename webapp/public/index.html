@@ -1,0 +1,757 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hệ thống Thương Mại Điện Tử ICTU - Đồng Anh Tuấn</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif; }
+    </style>
+</head>
+<body class="bg-[#f8fafc] text-slate-800 min-h-screen flex flex-col justify-between relative">
+
+    <!-- Header Navigation (Đã bỏ thanh thông báo tím bên trên) -->
+    <header class="bg-white border-b border-slate-200 sticky top-0 z-40 shadow-sm">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between gap-4">
+            <!-- Brand -->
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="filterCategory('all', event)">
+                <span class="w-10 h-10 rounded-xl bg-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-sm">
+                    <i class="fa-solid fa-bag-shopping"></i>
+                </span>
+                <div>
+                    <span class="text-base font-extrabold tracking-tight text-slate-900 block">ICTU <span class="text-indigo-600">E-COMMERCE</span></span>
+                    <p class="text-[11px] text-slate-500 font-medium">Sinh viên: Đồng Anh Tuấn • MSSV: DTC245200427</p>
+                </div>
+            </div>
+
+            <!-- Search Bar with Auto-suggest -->
+            <div class="hidden md:flex flex-1 max-w-lg relative">
+                <div class="relative w-full">
+                    <input type="text" id="searchInput" oninput="handleSearchInput()" placeholder="Tìm kiếm laptop, màn hình, phụ kiện gaming..." 
+                           class="w-full bg-slate-50 border border-slate-200 rounded-lg pl-10 pr-4 py-2 text-xs focus:bg-white focus:outline-none focus:border-indigo-600 focus:ring-1 focus:ring-indigo-600 transition">
+                    <i class="fa-solid fa-magnifying-glass absolute left-3.5 top-2.5 text-slate-400 text-xs"></i>
+                </div>
+                <!-- Dropdown Auto Suggest -->
+                <div id="searchSuggestBox" class="absolute top-11 left-0 right-0 bg-white border border-slate-200 rounded-xl shadow-xl z-50 hidden max-h-72 overflow-y-auto divide-y divide-slate-100"></div>
+            </div>
+
+            <!-- User Action & Cart -->
+            <div class="flex items-center space-x-4">
+                <a href="http://192.168.47.129:3001" target="_blank" class="hidden sm:flex items-center gap-1.5 text-xs font-semibold text-slate-600 hover:text-indigo-600 transition">
+                    <i class="fa-solid fa-chart-line text-indigo-600"></i> Grafana
+                </a>
+
+                <button onclick="toggleCartDrawer()" class="relative p-2.5 rounded-lg bg-slate-50 border border-slate-200 text-slate-700 hover:bg-slate-100 transition">
+                    <i class="fa-solid fa-cart-shopping text-sm"></i>
+                    <span id="cartBadge" class="absolute -top-1 -right-1 bg-rose-600 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center shadow">0</span>
+                </button>
+
+                <div id="navUnauth">
+                    <button onclick="openAuthModal('login')" class="text-xs font-semibold bg-[#1e293b] hover:bg-[#0f172a] text-white px-4 py-2 rounded-lg transition shadow-sm">
+                        Đăng nhập
+                    </button>
+                </div>
+
+                <div id="navAuth" class="hidden flex items-center space-x-3">
+                    <div class="text-right">
+                        <p id="userNameDisplay" class="text-xs font-bold text-slate-900"></p>
+                        <p id="userRoleDisplay" class="text-[10px] text-emerald-600 font-semibold uppercase"></p>
+                    </div>
+                    <button onclick="logout()" class="p-2 text-xs text-rose-600 hover:bg-rose-50 rounded-lg border border-rose-200 transition" title="Đăng xuất">
+                        <i class="fa-solid fa-arrow-right-from-bracket"></i>
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="max-w-7xl mx-auto w-full px-4 sm:px-6 lg:px-8 py-6 space-y-8 flex-grow">
+
+        <!-- Hero Promo Banner -->
+        <div class="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 rounded-2xl p-6 sm:p-10 text-white shadow-md relative overflow-hidden flex flex-col md:flex-row items-center justify-between gap-6">
+            <div class="space-y-3 max-w-xl z-10">
+                <span class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-bold bg-indigo-500/20 text-indigo-300 border border-indigo-400/30">
+                    <i class="fa-solid fa-bolt text-amber-400"></i> Nền Tảng Thương Mại Điện Tử Trực Tuyến
+                </span>
+                <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight">Sàn Mua Sắm Thiết Bị Công Nghệ Trực Tuyến</h1>
+                <p class="text-xs text-slate-300 leading-relaxed font-normal">
+                    Hệ thống tích hợp đầy đủ Reverse Proxy SSL Nginx, Authentication bảo mật băm mật khẩu Bcrypt trên MySQL 8.0 cùng cụm giám sát thời gian thực.
+                </p>
+                <div class="pt-2 flex flex-wrap items-center gap-3">
+                    <a href="#productSection" class="text-xs font-bold bg-white text-slate-900 hover:bg-slate-100 px-4 py-2.5 rounded-lg transition shadow">Mua sắm ngay</a>
+                    <a href="http://192.168.47.129:8080" target="_blank" class="text-xs font-semibold bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2.5 rounded-lg border border-slate-700 transition">Quản trị MySQL (Adminer)</a>
+                    <button onclick="toggleChatBot()" class="text-xs font-semibold bg-indigo-600/80 hover:bg-indigo-600 text-white px-4 py-2.5 rounded-lg transition flex items-center gap-1.5">
+                        <i class="fa-solid fa-headset"></i> Hỗ trợ trực tuyến
+                    </button>
+                </div>
+            </div>
+            <div class="hidden md:flex items-center justify-center pr-6">
+                <i class="fa-solid fa-laptop-code text-8xl text-indigo-400/80 drop-shadow-lg"></i>
+            </div>
+        </div>
+
+        <!-- Section: Gợi ý sản phẩm nổi bật hôm nay (Recommended) -->
+        <section class="space-y-4">
+            <div class="flex items-center justify-between">
+                <div>
+                    <h2 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-fire text-rose-500"></i> Gợi ý hôm nay dành cho bạn
+                    </h2>
+                    <p class="text-xs text-slate-500">Cấu hình máy và trang bị bán chạy nhất tuần qua</p>
+                </div>
+            </div>
+            <div id="recommendedGrid" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"></div>
+        </section>
+
+        <!-- Section: Toàn bộ danh mục sản phẩm có lọc & sắp xếp -->
+        <section id="productSection" class="space-y-4 pt-4 border-t border-slate-200">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-200 pb-3">
+                <div>
+                    <h2 class="text-lg font-bold text-slate-900">Danh mục sản phẩm mở bán</h2>
+                    <p id="productCountLabel" class="text-xs text-slate-500">Dữ liệu hàng hóa tải trực tiếp từ cơ sở dữ liệu MySQL</p>
+                </div>
+                
+                <!-- Bộ lọc & Sắp xếp -->
+                <div class="flex flex-wrap items-center gap-3">
+                    <select id="sortSelect" onchange="applyFilters()" class="text-xs bg-white border border-slate-200 rounded-lg px-3 py-1.5 font-medium text-slate-700 focus:outline-none focus:border-indigo-600">
+                        <option value="default">Sắp xếp: Mặc định</option>
+                        <option value="price-asc">Giá: Thấp đến Cao</option>
+                        <option value="price-desc">Giá: Cao đến Thấp</option>
+                        <option value="stock-desc">Tồn kho nhiều nhất</option>
+                    </select>
+
+                    <div class="flex flex-wrap gap-1.5">
+                        <button onclick="filterCategory('all', event)" class="category-btn px-3 py-1.5 text-xs rounded-lg font-semibold bg-indigo-600 text-white transition">Tất cả</button>
+                        <button onclick="filterCategory('Laptop', event)" class="category-btn px-3 py-1.5 text-xs rounded-lg font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition">Laptop</button>
+                        <button onclick="filterCategory('Màn hình', event)" class="category-btn px-3 py-1.5 text-xs rounded-lg font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition">Màn hình</button>
+                        <button onclick="filterCategory('Gaming Gear', event)" class="category-btn px-3 py-1.5 text-xs rounded-lg font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition">Gaming Gear</button>
+                        <button onclick="filterCategory('Linh kiện', event)" class="category-btn px-3 py-1.5 text-xs rounded-lg font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition">Linh kiện</button>
+                        <button onclick="filterCategory('Thiết bị mạng', event)" class="category-btn px-3 py-1.5 text-xs rounded-lg font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition">Mạng & Khác</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Product Grid -->
+            <div id="productGrid" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6"></div>
+        </section>
+
+    </main>
+
+    <!-- Modal Xem Nhanh Sản Phẩm (Quick View) -->
+    <div id="quickViewModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white rounded-2xl w-full max-w-lg p-6 shadow-2xl relative">
+            <button onclick="closeQuickView()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-base">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+            <div id="quickViewContent" class="space-y-4"></div>
+        </div>
+    </div>
+
+    <!-- Modal Giỏ hàng (Drawer) -->
+    <div id="cartModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex justify-end hidden">
+        <div class="bg-white w-full max-w-md h-full shadow-2xl flex flex-col justify-between p-6">
+            <div>
+                <div class="flex items-center justify-between border-b border-slate-200 pb-4 mb-4">
+                    <h3 class="text-base font-bold text-slate-900 flex items-center gap-2">
+                        <i class="fa-solid fa-cart-shopping text-indigo-600"></i> Giỏ hàng E-Commerce
+                    </h3>
+                    <button onclick="toggleCartDrawer()" class="text-slate-400 hover:text-slate-700 text-lg">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+                <div id="cartItemsList" class="space-y-3 max-h-[50vh] overflow-y-auto pr-1"></div>
+            </div>
+
+            <!-- Voucher & Thanh toán -->
+            <div class="border-t border-slate-200 pt-4 space-y-3">
+                <div class="flex gap-2">
+                    <input type="text" id="voucherInput" placeholder="Nhập mã voucher (VD: ICTU2026)" class="uppercase flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs focus:outline-none focus:border-indigo-600">
+                    <button onclick="applyVoucher()" class="bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition">Áp dụng</button>
+                </div>
+                <div id="discountNotice" class="hidden text-[11px] text-emerald-600 font-semibold flex justify-between">
+                    <span>Khuyến mãi (10%):</span>
+                    <span id="discountAmount">-0 đ</span>
+                </div>
+                <div class="flex justify-between items-center text-sm">
+                    <span class="text-slate-600 font-medium">Tổng thanh toán:</span>
+                    <span id="cartTotalPrice" class="text-base font-extrabold text-rose-600">0 đ</span>
+                </div>
+                <button onclick="checkoutCart()" class="w-full bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-2.5 rounded-lg text-xs transition shadow">
+                    Xác nhận đặt hàng E-Commerce
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal Đăng nhập & Đăng ký -->
+    <div id="authModal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 flex items-center justify-center p-4 hidden">
+        <div class="bg-white border border-slate-200 rounded-xl w-full max-w-md p-6 shadow-2xl relative">
+            <button onclick="closeAuthModal()" class="absolute top-4 right-4 text-slate-400 hover:text-slate-700 text-sm">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+
+            <div class="flex border-b border-slate-200 mb-5">
+                <button id="modalTabLogin" onclick="switchAuthTab('login')" class="flex-1 pb-3 text-xs font-bold text-indigo-600 border-b-2 border-indigo-600">Đăng nhập</button>
+                <button id="modalTabReg" onclick="switchAuthTab('register')" class="flex-1 pb-3 text-xs font-semibold text-slate-500 hover:text-slate-800">Đăng ký mới</button>
+            </div>
+
+            <div id="modalAlert" class="hidden text-xs p-3 rounded mb-4"></div>
+
+            <form id="formLogin" onsubmit="handleLoginSubmit(event)" class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Email tài khoản</label>
+                    <input type="email" id="modalLoginEmail" required placeholder="admin@ictu.edu.vn" 
+                           class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-xs focus:bg-white focus:outline-none focus:border-indigo-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Mật khẩu</label>
+                    <input type="password" id="modalLoginPass" required placeholder="••••••••" 
+                           class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-xs focus:bg-white focus:outline-none focus:border-indigo-600">
+                </div>
+                <button type="submit" class="w-full bg-[#1e293b] hover:bg-[#0f172a] text-white text-xs font-bold py-2.5 rounded transition shadow-sm">
+                    Đăng nhập hệ thống
+                </button>
+            </form>
+
+            <form id="formRegister" onsubmit="handleRegisterSubmit(event)" class="space-y-3 hidden">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Họ và tên</label>
+                    <input type="text" id="modalRegName" required placeholder="Đồng Anh Tuấn" 
+                           class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-xs focus:bg-white focus:outline-none focus:border-indigo-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Email</label>
+                    <input type="email" id="modalRegEmail" required placeholder="tuan@ictu.edu.vn" 
+                           class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-xs focus:bg-white focus:outline-none focus:border-indigo-600">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Mật khẩu</label>
+                    <input type="password" id="modalRegPass" required placeholder="••••••••" 
+                           class="w-full bg-slate-50 border border-slate-300 rounded px-3 py-2 text-xs focus:bg-white focus:outline-none focus:border-indigo-600">
+                </div>
+                <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold py-2.5 rounded transition shadow-sm">
+                    Tạo tài khoản khách hàng
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ------------------------------------------------------------- -->
+    <!-- WIDGET CHAT HỖ TRỢ KHÁCH HÀNG / TƯ VẤN VIÊN (LIVE CHAT)        -->
+    <!-- ------------------------------------------------------------- -->
+    <!-- Nút Chat Tròn Floating góc phải dưới -->
+    <div class="fixed bottom-6 right-6 z-50">
+        <button id="chatToggleBtn" onclick="toggleChatBot()" class="w-14 h-14 bg-indigo-600 hover:bg-indigo-700 text-white rounded-full flex items-center justify-center shadow-2xl transition duration-200 transform hover:scale-105 relative">
+            <i class="fa-solid fa-comments text-xl"></i>
+            <span class="absolute top-1 right-1 w-3.5 h-3.5 bg-emerald-400 border-2 border-white rounded-full"></span>
+        </button>
+    </div>
+
+    <!-- Khung Cửa Sổ Chat Bật Tắt -->
+    <div id="chatBoxContainer" class="fixed bottom-24 right-6 w-80 sm:w-96 bg-white border border-slate-200 rounded-2xl shadow-2xl z-50 hidden flex flex-col overflow-hidden transition duration-300">
+        <!-- Chat Header -->
+        <div class="bg-gradient-to-r from-indigo-600 to-indigo-700 p-4 text-white flex items-center justify-between shadow">
+            <div class="flex items-center space-x-3">
+                <div class="relative">
+                    <span class="w-9 h-9 rounded-full bg-white/20 flex items-center justify-center text-white text-base">
+                        <i class="fa-solid fa-headset"></i>
+                    </span>
+                    <span class="absolute bottom-0 right-0 w-2.5 h-2.5 bg-emerald-400 border border-indigo-700 rounded-full"></span>
+                </div>
+                <div>
+                    <h4 class="text-xs font-bold">Hỗ Trợ Khách Hàng ICTU</h4>
+                    <p class="text-[10px] text-indigo-100 flex items-center gap-1">
+                        <span class="w-1.5 h-1.5 bg-emerald-400 rounded-full"></span> Đang trực tuyến
+                    </p>
+                </div>
+            </div>
+            <button onclick="toggleChatBot()" class="text-white/80 hover:text-white text-sm">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Tin nhắn / Lịch sử chat -->
+        <div id="chatMessages" class="p-4 h-72 overflow-y-auto space-y-3 bg-[#f8fafc] text-xs">
+            <!-- Tin nhắn mẫu từ nhân viên -->
+            <div class="flex items-start gap-2">
+                <div class="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] flex-shrink-0">
+                    <i class="fa-solid fa-headset"></i>
+                </div>
+                <div class="bg-white border border-slate-200 p-2.5 rounded-2xl rounded-tl-none shadow-sm text-slate-700 max-w-[85%]">
+                    Xin chào! Tôi có thể giúp gì cho bạn hôm nay?
+                </div>
+            </div>
+
+            <div class="flex items-start gap-2">
+                <div class="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] flex-shrink-0">
+                    <i class="fa-solid fa-headset"></i>
+                </div>
+                <div class="bg-indigo-50 border border-indigo-100 p-2.5 rounded-2xl rounded-tl-none text-slate-800 max-w-[85%]">
+                    🎁 <strong>Mã giảm giá độc quyền:</strong> Nhập mã <span class="bg-indigo-600 text-white px-1.5 py-0.5 rounded font-mono font-bold">ICTU2026</span> khi thanh toán giỏ hàng để được giảm <strong>10%</strong> nhé!
+                </div>
+            </div>
+        </div>
+
+        <!-- Gợi ý câu hỏi nhanh -->
+        <div class="px-3 py-2 bg-white border-t border-slate-100 flex items-center gap-1.5 overflow-x-auto whitespace-nowrap">
+            <button onclick="sendQuickMsg('Lấy mã giảm giá')" class="text-[10px] bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 px-2 py-1 rounded-full transition">🎁 Lấy mã giảm giá</button>
+            <button onclick="sendQuickMsg('Tư vấn laptop sinh viên')" class="text-[10px] bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 px-2 py-1 rounded-full transition">💻 Tư vấn laptop</button>
+            <button onclick="sendQuickMsg('Chính sách bảo hành')" class="text-[10px] bg-slate-100 hover:bg-indigo-50 hover:text-indigo-600 text-slate-600 px-2 py-1 rounded-full transition">🛡️ Bảo hành</button>
+        </div>
+
+        <!-- Ô nhập chat -->
+        <form onsubmit="handleSendChat(event)" class="p-3 bg-white border-t border-slate-200 flex gap-2">
+            <input type="text" id="chatInput" placeholder="Nhập câu hỏi của bạn..." 
+                   class="flex-1 bg-slate-50 border border-slate-200 rounded-xl px-3 py-1.5 text-xs focus:outline-none focus:bg-white focus:border-indigo-600">
+            <button type="submit" class="bg-indigo-600 hover:bg-indigo-700 text-white w-8 h-8 rounded-xl flex items-center justify-center text-xs transition">
+                <i class="fa-solid fa-paper-plane"></i>
+            </button>
+        </form>
+    </div>
+
+    <!-- Footer -->
+    <footer class="bg-white border-t border-slate-200 text-center py-4 text-xs text-slate-500 font-medium">
+        Hệ thống Website Thương mại điện tử (E-Commerce) • Sinh viên: <strong class="text-slate-800 font-bold">Đồng Anh Tuấn (DTC245200427)</strong> • ICTU 2026
+    </footer>
+
+    <script>
+        let allProducts = [];
+        let currentCategory = 'all';
+        let cart = [];
+        let discountRate = 0;
+
+        const categoryIcons = {
+            'Laptop': 'fa-laptop',
+            'Màn hình': 'fa-desktop',
+            'Gaming Gear': 'fa-gamepad',
+            'Linh kiện': 'fa-microchip',
+            'Thiết bị mạng': 'fa-wifi'
+        };
+
+        async function fetchProducts() {
+            try {
+                const res = await fetch('/api/products');
+                allProducts = await res.json();
+                renderRecommended();
+                applyFilters();
+            } catch (err) {
+                console.error(err);
+            }
+        }
+
+        function renderRecommended() {
+            const recommended = allProducts.filter(p => ['LT-01', 'MH-01', 'GR-01', 'LK-03'].includes(p.code));
+            const recGrid = document.getElementById('recommendedGrid');
+            recGrid.innerHTML = '';
+
+            recommended.forEach(p => {
+                const icon = categoryIcons[p.category] || 'fa-box';
+                recGrid.innerHTML += `
+                    <div class="bg-white border border-indigo-100 rounded-xl p-3.5 flex items-center gap-3.5 hover:shadow-md transition">
+                        <div class="w-14 h-14 rounded-lg bg-indigo-50/70 border border-indigo-100/60 flex items-center justify-center text-indigo-600 text-2xl flex-shrink-0">
+                            <i class="fa-solid ${icon}"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <span class="text-[9px] font-bold text-rose-500 uppercase">Hot Choice</span>
+                            <h4 class="text-xs font-bold text-slate-900 truncate">${p.name}</h4>
+                            <p class="text-xs font-extrabold text-indigo-600 mt-0.5">${Number(p.price).toLocaleString('vi-VN')} đ</p>
+                        </div>
+                        <button onclick="addToCart('${p.code}', '${p.name}', ${p.price})" class="p-2 bg-indigo-50 hover:bg-indigo-600 text-indigo-600 hover:text-white rounded-lg transition text-xs">
+                            <i class="fa-solid fa-plus"></i>
+                        </button>
+                    </div>
+                `;
+            });
+        }
+
+        function applyFilters() {
+            let filtered = [...allProducts];
+
+            if (currentCategory !== 'all') {
+                filtered = filtered.filter(p => p.category === currentCategory);
+            }
+
+            const sortVal = document.getElementById('sortSelect').value;
+            if (sortVal === 'price-asc') filtered.sort((a, b) => a.price - b.price);
+            if (sortVal === 'price-desc') filtered.sort((a, b) => b.price - a.price);
+            if (sortVal === 'stock-desc') filtered.sort((a, b) => b.stock - a.stock);
+
+            renderProducts(filtered);
+            document.getElementById('productCountLabel').textContent = `Hiển thị ${filtered.length} sản phẩm theo bộ lọc`;
+        }
+
+        function filterCategory(cat, event) {
+            currentCategory = cat;
+            document.querySelectorAll('.category-btn').forEach(b => {
+                b.className = "category-btn px-3 py-1.5 text-xs rounded-lg font-semibold bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 transition";
+            });
+            if (event) {
+                event.target.className = "category-btn px-3 py-1.5 text-xs rounded-lg font-semibold bg-indigo-600 text-white transition";
+            }
+            applyFilters();
+        }
+
+        function renderProducts(products) {
+            const grid = document.getElementById('productGrid');
+            grid.innerHTML = '';
+
+            products.forEach(p => {
+                const icon = categoryIcons[p.category] || 'fa-box';
+                grid.innerHTML += `
+                    <div class="bg-white border border-slate-200 rounded-xl p-4 flex flex-col justify-between hover:shadow-lg transition duration-200">
+                        <div>
+                            <div class="h-40 rounded-lg bg-slate-50 flex items-center justify-center border border-slate-100 mb-3 text-indigo-500 relative">
+                                <i class="fa-solid ${icon} text-5xl"></i>
+                                <button onclick="openQuickView('${p.code}')" class="absolute top-2 right-2 p-1.5 rounded-md bg-white border border-slate-200 text-slate-500 hover:text-indigo-600 text-xs shadow-sm" title="Xem nhanh">
+                                    <i class="fa-solid fa-eye"></i>
+                                </button>
+                            </div>
+                            <span class="text-[10px] font-bold text-indigo-600 uppercase tracking-wider">${p.category}</span>
+                            <h3 class="text-xs font-bold text-slate-900 mt-1 line-clamp-2 h-8">${p.name}</h3>
+                            <p class="text-[11px] text-slate-500 mt-2 font-medium">Mã: ${p.code} • Kho: <span class="text-slate-800 font-bold">${p.stock}</span></p>
+                        </div>
+                        <div class="mt-4 pt-3 border-t border-slate-100 flex items-center justify-between">
+                            <div>
+                                <span class="text-[10px] text-slate-400 block font-medium">Giá niêm yết</span>
+                                <span class="text-sm font-extrabold text-rose-600">${Number(p.price).toLocaleString('vi-VN')} đ</span>
+                            </div>
+                            <button onclick="addToCart('${p.code}', '${p.name}', ${p.price})" class="px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold flex items-center gap-1.5 transition shadow-sm">
+                                <i class="fa-solid fa-plus text-[10px]"></i> Thêm
+                            </button>
+                        </div>
+                    </div>
+                `;
+            });
+        }
+
+        function handleSearchInput() {
+            const val = document.getElementById('searchInput').value.trim().toLowerCase();
+            const box = document.getElementById('searchSuggestBox');
+
+            if (!val) {
+                box.classList.add('hidden');
+                applyFilters();
+                return;
+            }
+
+            const matches = allProducts.filter(p => p.name.toLowerCase().includes(val) || p.category.toLowerCase().includes(val));
+            if (matches.length === 0) {
+                box.innerHTML = `<p class="p-3 text-xs text-slate-400 text-center">Không tìm thấy sản phẩm phù hợp</p>`;
+            } else {
+                box.innerHTML = matches.slice(0, 5).map(m => `
+                    <div onclick="selectSuggest('${m.name}')" class="p-3 hover:bg-indigo-50 cursor-pointer flex items-center justify-between text-xs transition">
+                        <div>
+                            <p class="font-bold text-slate-800">${m.name}</p>
+                            <span class="text-[10px] text-slate-400">${m.category} • Mã ${m.code}</span>
+                        </div>
+                        <span class="font-bold text-rose-600">${Number(m.price).toLocaleString('vi-VN')} đ</span>
+                    </div>
+                `).join('');
+            }
+            box.classList.remove('hidden');
+            renderProducts(matches);
+        }
+
+        function selectSuggest(name) {
+            document.getElementById('searchInput').value = name;
+            document.getElementById('searchSuggestBox').classList.add('hidden');
+            renderProducts(allProducts.filter(p => p.name.toLowerCase().includes(name.toLowerCase())));
+        }
+
+        function openQuickView(code) {
+            const p = allProducts.find(item => item.code === code);
+            if (!p) return;
+            const icon = categoryIcons[p.category] || 'fa-box';
+            document.getElementById('quickViewContent').innerHTML = `
+                <div class="flex items-center gap-4 border-b border-slate-100 pb-4">
+                    <div class="w-20 h-20 bg-indigo-50 text-indigo-600 text-4xl rounded-xl flex items-center justify-center flex-shrink-0">
+                        <i class="fa-solid ${icon}"></i>
+                    </div>
+                    <div>
+                        <span class="text-[10px] font-bold text-indigo-600 uppercase">${p.category}</span>
+                        <h3 class="text-base font-bold text-slate-900">${p.name}</h3>
+                        <p class="text-xs text-slate-500">Mã SKU: ${p.code}</p>
+                    </div>
+                </div>
+                <div class="space-y-2 text-xs text-slate-600 py-2">
+                    <p><i class="fa-solid fa-check text-emerald-500 mr-2"></i>Trạng thái kho: <strong class="text-slate-900">${p.status} (${p.stock} sản phẩm)</strong></p>
+                    <p><i class="fa-solid fa-shield text-indigo-500 mr-2"></i>Bảo hành: <strong>Chính hãng 24 tháng ICTU</strong></p>
+                    <p><i class="fa-solid fa-truck-fast text-amber-500 mr-2"></i>Giao hàng: Miễn phí vận chuyển toàn quốc</p>
+                </div>
+                <div class="pt-3 border-t border-slate-100 flex items-center justify-between">
+                    <span class="text-lg font-extrabold text-rose-600">${Number(p.price).toLocaleString('vi-VN')} đ</span>
+                    <button onclick="addToCart('${p.code}', '${p.name}', ${p.price}); closeQuickView();" class="bg-indigo-600 hover:bg-indigo-700 text-white font-bold px-4 py-2 rounded-lg text-xs transition">
+                        Thêm vào giỏ hàng
+                    </button>
+                </div>
+            `;
+            document.getElementById('quickViewModal').classList.remove('hidden');
+        }
+
+        function closeQuickView() {
+            document.getElementById('quickViewModal').classList.add('hidden');
+        }
+
+        function addToCart(code, name, price) {
+            const item = cart.find(i => i.code === code);
+            if (item) item.qty++;
+            else cart.push({ code, name, price, qty: 1 });
+            updateCartUI();
+        }
+
+        function updateCartUI() {
+            const totalQty = cart.reduce((s, i) => s + i.qty, 0);
+            document.getElementById('cartBadge').textContent = totalQty;
+
+            const list = document.getElementById('cartItemsList');
+            if (cart.length === 0) {
+                list.innerHTML = `<p class="text-xs text-slate-400 text-center py-8">Chưa có sản phẩm nào trong giỏ hàng</p>`;
+                document.getElementById('cartTotalPrice').textContent = '0 đ';
+                document.getElementById('discountNotice').classList.add('hidden');
+                return;
+            }
+
+            let subTotal = 0;
+            list.innerHTML = '';
+            cart.forEach((i, idx) => {
+                subTotal += i.price * i.qty;
+                list.innerHTML += `
+                    <div class="flex items-center justify-between border-b border-slate-100 pb-2 text-xs">
+                        <div class="flex-1 pr-2">
+                            <p class="font-bold text-slate-800">${i.name}</p>
+                            <p class="text-slate-500">${Number(i.price).toLocaleString('vi-VN')} đ x ${i.qty}</p>
+                        </div>
+                        <div class="flex items-center gap-2">
+                            <span class="font-bold text-slate-900">${Number(i.price * i.qty).toLocaleString('vi-VN')} đ</span>
+                            <button onclick="removeCartItem(${idx})" class="text-rose-500 hover:text-rose-700"><i class="fa-solid fa-trash-can"></i></button>
+                        </div>
+                    </div>
+                `;
+            });
+
+            const discount = subTotal * discountRate;
+            const finalTotal = subTotal - discount;
+
+            if (discountRate > 0) {
+                document.getElementById('discountNotice').classList.remove('hidden');
+                document.getElementById('discountAmount').textContent = `-${Number(discount).toLocaleString('vi-VN')} đ`;
+            } else {
+                document.getElementById('discountNotice').classList.add('hidden');
+            }
+
+            document.getElementById('cartTotalPrice').textContent = Number(finalTotal).toLocaleString('vi-VN') + ' đ';
+        }
+
+        function removeCartItem(idx) {
+            cart.splice(idx, 1);
+            updateCartUI();
+        }
+
+        function toggleCartDrawer() {
+            document.getElementById('cartModal').classList.toggle('hidden');
+        }
+
+        function applyVoucher() {
+            const code = document.getElementById('voucherInput').value.trim().toUpperCase();
+            if (code === 'ICTU2026') {
+                discountRate = 0.1;
+                alert('Áp dụng mã giảm giá ICTU2026 (Giảm 10%) thành công!');
+            } else {
+                discountRate = 0;
+                alert('Mã giảm giá không hợp lệ!');
+            }
+            updateCartUI();
+        }
+
+        function checkoutCart() {
+            if (cart.length === 0) return alert('Giỏ hàng đang trống!');
+            alert('Đặt hàng E-Commerce thành công! Hệ thống đã ghi nhận đơn.');
+            cart = [];
+            discountRate = 0;
+            document.getElementById('voucherInput').value = '';
+            updateCartUI();
+            toggleCartDrawer();
+        }
+
+        function openAuthModal(tab) {
+            document.getElementById('authModal').classList.remove('hidden');
+            switchAuthTab(tab);
+        }
+
+        function closeAuthModal() {
+            document.getElementById('authModal').classList.add('hidden');
+            document.getElementById('modalAlert').classList.add('hidden');
+        }
+
+        function switchAuthTab(tab) {
+            const fLog = document.getElementById('formLogin');
+            const fReg = document.getElementById('formRegister');
+            const tLog = document.getElementById('modalTabLogin');
+            const tReg = document.getElementById('modalTabReg');
+            document.getElementById('modalAlert').classList.add('hidden');
+
+            if (tab === 'login') {
+                fLog.classList.remove('hidden');
+                fReg.classList.add('hidden');
+                tLog.className = "flex-1 pb-3 text-xs font-bold text-indigo-600 border-b-2 border-indigo-600";
+                tReg.className = "flex-1 pb-3 text-xs font-semibold text-slate-500 hover:text-slate-800";
+            } else {
+                fLog.classList.add('hidden');
+                fReg.classList.remove('hidden');
+                tReg.className = "flex-1 pb-3 text-xs font-bold text-indigo-600 border-b-2 border-indigo-600";
+                tLog.className = "flex-1 pb-3 text-xs font-semibold text-slate-500 hover:text-slate-800";
+            }
+        }
+
+        function showAuthAlert(msg, isSuccess) {
+            const el = document.getElementById('modalAlert');
+            el.className = isSuccess 
+                ? "text-xs p-3 rounded mb-4 bg-emerald-50 border border-emerald-200 text-emerald-700" 
+                : "text-xs p-3 rounded mb-4 bg-rose-50 border border-rose-200 text-rose-700";
+            el.textContent = msg;
+            el.classList.remove('hidden');
+        }
+
+        async function handleLoginSubmit(e) {
+            e.preventDefault();
+            const email = document.getElementById('modalLoginEmail').value;
+            const password = document.getElementById('modalLoginPass').value;
+
+            try {
+                const res = await fetch('/api/login', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showAuthAlert('Đăng nhập thành công!', true);
+                    document.getElementById('navUnauth').classList.add('hidden');
+                    document.getElementById('navAuth').classList.remove('hidden');
+                    document.getElementById('userNameDisplay').textContent = data.user.fullname;
+                    document.getElementById('userRoleDisplay').textContent = data.user.role;
+                    setTimeout(closeAuthModal, 800);
+                } else {
+                    showAuthAlert(data.error || 'Sai thông tin tài khoản!', false);
+                }
+            } catch (err) {
+                showAuthAlert('Lỗi kết nối máy chủ!', false);
+            }
+        }
+
+        async function handleRegisterSubmit(e) {
+            e.preventDefault();
+            const fullname = document.getElementById('modalRegName').value;
+            const email = document.getElementById('modalRegEmail').value;
+            const password = document.getElementById('modalRegPass').value;
+
+            try {
+                const res = await fetch('/api/register', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ fullname, email, password })
+                });
+                const data = await res.json();
+                if (res.ok) {
+                    showAuthAlert('Đăng ký thành công! Hãy đăng nhập.', true);
+                    setTimeout(() => switchAuthTab('login'), 1000);
+                } else {
+                    showAuthAlert(data.error || 'Đăng ký thất bại!', false);
+                }
+            } catch (err) {
+                showAuthAlert('Lỗi kết nối máy chủ!', false);
+            }
+        }
+
+        function logout() {
+            document.getElementById('navAuth').classList.add('hidden');
+            document.getElementById('navUnauth').classList.remove('hidden');
+            alert('Đã đăng xuất tài khoản!');
+        }
+
+        // -------------------------------------------------------------
+        // LOGIC CHATBOT HỖ TRỢ KHÁCH HÀNG TỰ ĐỘNG
+        // -------------------------------------------------------------
+        function toggleChatBot() {
+            document.getElementById('chatBoxContainer').classList.toggle('hidden');
+        }
+
+        function handleSendChat(e) {
+            e.preventDefault();
+            const input = document.getElementById('chatInput');
+            const text = input.value.trim();
+            if (!text) return;
+
+            addChatMessage(text, true);
+            input.value = '';
+
+            // Phản hồi tự động từ nhân viên
+            setTimeout(() => {
+                respondBot(text);
+            }, 600);
+        }
+
+        function sendQuickMsg(text) {
+            addChatMessage(text, true);
+            setTimeout(() => {
+                respondBot(text);
+            }, 500);
+        }
+
+        function addChatMessage(msg, isUser) {
+            const chatBox = document.getElementById('chatMessages');
+            if (isUser) {
+                chatBox.innerHTML += `
+                    <div class="flex items-start justify-end gap-2">
+                        <div class="bg-indigo-600 text-white p-2.5 rounded-2xl rounded-tr-none shadow-sm max-w-[85%]">
+                            ${msg}
+                        </div>
+                    </div>
+                `;
+            } else {
+                chatBox.innerHTML += `
+                    <div class="flex items-start gap-2">
+                        <div class="w-7 h-7 rounded-full bg-indigo-600 text-white flex items-center justify-center text-[10px] flex-shrink-0">
+                            <i class="fa-solid fa-headset"></i>
+                        </div>
+                        <div class="bg-white border border-slate-200 p-2.5 rounded-2xl rounded-tl-none shadow-sm text-slate-700 max-w-[85%]">
+                            ${msg}
+                        </div>
+                    </div>
+                `;
+            }
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function respondBot(userMsg) {
+            const msg = userMsg.toLowerCase();
+            let botReply = 'Cảm ơn bạn đã liên hệ! Đội ngũ tư vấn sẽ phản hồi bạn trong giây lát.';
+
+            if (msg.includes('mã') || msg.includes('giảm giá') || msg.includes('voucher') || msg.includes('khuyến mãi')) {
+                botReply = 'Bạn nhập mã <strong>ICTU2026</strong> trong phần giỏ hàng để được giảm ngay <strong>10%</strong> trên tổng đơn nhé!';
+            } else if (msg.includes('laptop') || msg.includes('máy tính')) {
+                botReply = 'Bên mình đang có sẵn mẫu <strong>Acer Nitro 5 Core i5</strong> và <strong>ASUS ROG Strix G16</strong> cực kỳ phù hợp cho học tập công nghệ thông tin và gaming!';
+            } else if (msg.includes('bảo hành')) {
+                botReply = 'Tất cả linh kiện và laptop tại ICTU E-Commerce đều được bảo hành chính hãng từ 24 - 36 tháng, 1 đổi 1 trong 30 ngày đầu.';
+            }
+
+            addChatMessage(botReply, false);
+        }
+
+        // Đóng dropdown tìm kiếm khi nhấp ra ngoài
+        document.addEventListener('click', (e) => {
+            if (!document.getElementById('searchInput').contains(e.target)) {
+                document.getElementById('searchSuggestBox').classList.add('hidden');
+            }
+        });
+
+        fetchProducts();
+    </script>
+</body>
+</html>
